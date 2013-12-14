@@ -2,13 +2,27 @@ using UnityEngine;
 
 public class BoxyControl : MonoBehaviour
 {
-    public float moveForce = 365f;
-    public float antiMoveForce = 200f;
+	public enum PlayerState {
+		Walking,
+		StuckOnSide,
+		Jumping,
+	};
+
+	public PlayerState PreviousState = PlayerState.Walking;
+	public PlayerState State = PlayerState.Walking;
+	public float PlayerDecel = 0.2f; 		//The amount the player slows down
+	public float PlayerAccel = 0.08f; 		// The amount the player accelerates by
     public float maxSpeed = 5f;
+	public float jumpSpeed = 1f;
+	public float maxJumpSpeed = 10f;
+
+	public float[] RequiredTorque;
+
+	public float JumpingTime = 0.0f;
+	public float MaxJumpingTime = 2.0f;
 
 	private Transform groundCheck;			// A position marking where to check if the player is grounded.
 	public float jumpForce = 1000f;			// Amount of force added when the player jumps.
-	private bool jump = false;
 	public bool grounded = false;
 
 	public Coin.CoinColor firstColor = Coin.CoinColor.None;
@@ -23,38 +37,128 @@ public class BoxyControl : MonoBehaviour
 		groundCheck = transform.Find("groundCheck");
     }
 
+	private bool IsRotated( float RotationZ )
+	{
+		return RotationZ <= 92  && RotationZ >= 88 
+			|| RotationZ <= 182 && RotationZ >= 178
+			|| RotationZ <= 272 && RotationZ >= 268;
+	}
+
+	private float GetAmountToFlip( float RotationZ )
+	{
+		if( RotationZ <= 92  && RotationZ >= 88  )
+			return RequiredTorque[0];
+		else if( RotationZ <= 182 && RotationZ >= 178 )
+			return RequiredTorque[1];
+		else if( RotationZ <= 272 && RotationZ >= 268 )
+			return RequiredTorque[2];
+		else{
+			print ( "We shouldn't get here!" );
+			return 0;
+		}
+	}
+
     void Update()
     {
 		// The player is grounded if a linecast to the groundcheck position hits anything on the ground layer.
 		grounded = Physics2D.Linecast(transform.position, groundCheck.position, 1 << LayerMask.NameToLayer("Ground"));  
-		
+
+		//Player is stuck on his side
+		if( State == PlayerState.StuckOnSide )
+		{
+			//Check to see if a miracle happened and the player got up.
+			if ( !IsRotated( transform.rotation.eulerAngles.z ) && grounded )
+			{
+				PreviousState = State;
+				State = PlayerState.Walking;
+			}
+		}
+		else if( IsRotated( transform.rotation.eulerAngles.z ) && rigidbody2D.velocity.y == 0 )
+		{
+			PreviousState = State;
+			State = PlayerState.StuckOnSide;
+			rigidbody2D.velocity = new Vector2( 0, rigidbody2D.velocity.y );
+		}
+
 		// If the jump button is pressed and the player is grounded then the player should jump.
-		if(Input.GetButtonDown("Jump") && grounded)
-			jump = true;
+		if(Input.GetButtonDown("Jump"))
+		{
+
+			if( State == PlayerState.StuckOnSide )
+			{
+				rigidbody2D.AddTorque( GetAmountToFlip( transform.rotation.eulerAngles.z ) );
+				PreviousState = State;
+				State = PlayerState.Walking;
+			}
+			else if( grounded )
+			{
+				PreviousState = State;
+				State = PlayerState.Jumping;
+			}
+		}
     }
 	
-	// If the player is changing direction (h has a different sign to velocity.x) or hasn't reached maxSpeed yet...
-	//if(h * rigidbody2D.velocity.x < maxSpeed)
+	private float TendToZero(float val, float amount)
+	{
+		if (val > 0f && (val -= amount) < 0f) return 0f;
+		if (val < 0f && (val += amount) > 0f) return 0f;
+		return val;
+	}
+
+	public float SpeedX;
 
     void FixedUpdate()
     {
         float h = Input.GetAxis( "Horizontal" );
+		SpeedX = rigidbody2D.velocity.x;
+		float SpeedY = rigidbody2D.velocity.y;
 
-        rigidbody2D.AddForce( Vector2.right * h * moveForce );
+		if( State != PlayerState.StuckOnSide )
+		{
+			if( h > 0f )
+			{
+				SpeedX = rigidbody2D.velocity.x + PlayerAccel + PlayerDecel;
+				if( SpeedX > maxSpeed )
+				{
+					SpeedX = maxSpeed;
+				}
+			}
+			else if( h < 0f )
+			{
+				SpeedX = rigidbody2D.velocity.x - (PlayerAccel + PlayerDecel);
+				if( SpeedX < -maxSpeed )
+					SpeedX = -maxSpeed;
+			}
 
-        if ( Mathf.Abs( rigidbody2D.velocity.x ) > maxSpeed ) {
-            rigidbody2D.velocity = new Vector2( Mathf.Sign( rigidbody2D.velocity.x ) * maxSpeed, rigidbody2D.velocity.y );
-        }
-		
-        // do not let player slide. Apply resistance.
-        if ( Mathf.Abs( h ) < Mathf.Epsilon && Mathf.Abs( rigidbody2D.velocity.x ) > maxSpeed / 3 ) {
-            rigidbody2D.AddForce( Vector2.right * -Mathf.Sign( rigidbody2D.velocity.x ) * antiMoveForce );
-        }
+			SpeedX = TendToZero( SpeedX, PlayerDecel );
+		}
+		if( State == PlayerState.Jumping ){
+			if( PreviousState != PlayerState.Jumping )
+			{
+				rigidbody2D.AddForce(new Vector2(0f, jumpForce));
+				PreviousState = State;
+				return;
+			}
+			else if( Input.GetButton("Jump") )
+			{
+				SpeedY += jumpSpeed;
+				JumpingTime += Time.fixedDeltaTime;
+				if( JumpingTime >= MaxJumpingTime )
+				{
+					State = PlayerState.Walking;
+					JumpingTime = 0f;
+				}
+			}
+			else //Not jumping anymore, so begin descent
+			{
+				State = PlayerState.Walking;
+				JumpingTime = 0f;
+			}
+		}
 
-		if( jump ){
-			// Add a vertical force to the player.
-			rigidbody2D.AddForce(new Vector2(0f, jumpForce));
-			jump = false;
+		if( rigidbody2D.velocity.x != SpeedX || rigidbody2D.velocity.y != SpeedY )
+		{
+			rigidbody2D.velocity = new Vector2( SpeedX, SpeedY );
 		}
     }
 
