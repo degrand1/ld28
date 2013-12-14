@@ -10,13 +10,14 @@ public class CameraFollow : MonoBehaviour
 	public Vector2 maxXAndY;  		// The maximum x and y coordinates the camera can have.
 	public Vector2 minXAndY;  		// The minimum x and y coordinates the camera can have.
 
-
+    public BoxyControl playerController;
 	public Transform player;		// Reference to the player's transform.
 
 
 	void Awake ()
 	{
 		// Setting up the reference.
+        playerController = GameObject.FindGameObjectWithTag("Player").GetComponent<BoxyControl>();
 		player = GameObject.FindGameObjectWithTag("Player").transform;
 	}
 
@@ -37,6 +38,9 @@ public class CameraFollow : MonoBehaviour
 
 	void FixedUpdate ()
 	{
+        if ( playerController.state == BoxyState.Dead )
+            return;
+
 		TrackPlayer();
 	}
 	

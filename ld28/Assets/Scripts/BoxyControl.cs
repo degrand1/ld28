@@ -33,6 +33,16 @@ public class BoxyControl : MonoBehaviour
 
     private bool restartedSinceLastDeath = false;
 
+    public void Die() {
+        if ( state == BoxyState.Dead )
+            return;
+
+        state = BoxyState.Dead;
+        RagDollMe();
+        restartedSinceLastDeath = false;
+        Invoke( "RestartLevel", 1.0f );
+    }
+
     void Awake()
     {
 		// Setting up references.
@@ -154,10 +164,7 @@ public class BoxyControl : MonoBehaviour
                 Invoke( "LoadNextLevel", 1.0f );
 			}
 		} else {
-            state = BoxyState.Dead;
-            RagDollMe();
-            restartedSinceLastDeath = false;
-            Invoke( "RestartLevel", 1.0f );
+            Die();
 		}
 
         return true;
