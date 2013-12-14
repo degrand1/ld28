@@ -25,10 +25,11 @@ public class Coin : MonoBehaviour {
 		{
 			BoxyControl playerController = other.GetComponent<BoxyControl>();
 
-			playerController.HandleGetCoin( color );
+			if ( playerController.HandleGetCoin( color ) ) {
+                // Destroy me
+                Destroy( transform.root.gameObject );
+            }
 
-			// Destroy me
-			Destroy(transform.root.gameObject);
 		}
 	}
 }

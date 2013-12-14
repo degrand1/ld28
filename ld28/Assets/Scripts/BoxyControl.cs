@@ -54,6 +54,10 @@ public class BoxyControl : MonoBehaviour
 		if(Input.GetButtonDown("Jump") && grounded)
 			jump = true;
 
+        // restart level if dead
+        if ( Input.GetButtonDown( "Jump" ) && state == BoxyState.Dead )
+            Application.LoadLevel(Application.loadedLevel);
+
 		SpriteRenderer renderer = GetComponent<SpriteRenderer> ();
 
 		// update sprite to reflect state
@@ -108,8 +112,15 @@ public class BoxyControl : MonoBehaviour
 		}
 	}
 
-	public void HandleGetCoin( Coin.CoinColor color ) {
-		print (color);
+    private void LoadNextLevel() {
+        Application.LoadLevel( nextLevel );
+    }
+
+	public bool HandleGetCoin( Coin.CoinColor color ) {
+
+        if ( state == BoxyState.TooCool ) {
+            return false; //don't get no mo coins now that you've won
+        }
 
 		if (firstColor == Coin.CoinColor.None) {
 			firstColor = color;
@@ -119,10 +130,13 @@ public class BoxyControl : MonoBehaviour
 		if (firstColor == color) {
 			numCoins++;
 			if ( numCoins == coinsNeeded ) {
-				Application.LoadLevel( nextLevel );
+                state = BoxyState.TooCool;
+                Invoke( "LoadNextLevel", 1.0f );
 			}
 		} else {
             state = BoxyState.Dead;
 		}
+
+        return true;
 	}
 }
