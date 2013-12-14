@@ -131,6 +131,7 @@ public class BoxyControl : MonoBehaviour
             // choose random torque direction, then choose a random torque value between 25 and 200
             rigidbody2D.AddTorque( Mathf.Sign( Random.value - 0.5f ) * ( 25f + Random.value * 175f ) );
         } else {
+            // fall down in the direction we're going
             rigidbody2D.AddTorque( Mathf.Sign( rigidbody2D.velocity.x ) * -50f );
         }
     }
