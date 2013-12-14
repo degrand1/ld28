@@ -11,6 +11,12 @@ public class BoxyControl : MonoBehaviour
 	private bool jump = false;
 	public bool grounded = false;
 
+	public Coin.CoinColor firstColor = Coin.CoinColor.None;
+	private int numCoins = 0;
+
+	public int coinsNeeded = -1;
+	public string nextLevel = "";
+
     void Awake()
     {
 		// Setting up references.
@@ -51,4 +57,39 @@ public class BoxyControl : MonoBehaviour
 			jump = false;
 		}
     }
+
+	private string colorToTag( Coin.CoinColor color ) {
+		switch (color)
+		{
+            case Coin.CoinColor.Blue:
+                    return "Blue Coin";
+            case Coin.CoinColor.Green:
+                    return "Green Coin";
+            case Coin.CoinColor.Orange:
+                    return "Orange Coin";
+            case Coin.CoinColor.Red:
+                    return "Red Coin";
+            case Coin.CoinColor.None:
+                    return "White Coin";
+			default: return "White Coin";
+		}
+	}
+
+	public void HandleGetCoin( Coin.CoinColor color ) {
+		print (color);
+
+		if (firstColor == Coin.CoinColor.None) {
+			firstColor = color;
+			coinsNeeded = GameObject.FindGameObjectsWithTag( colorToTag( color ) ).Length;
+		}
+			
+		if (firstColor == color) {
+			numCoins++;
+			if ( numCoins == coinsNeeded ) {
+				Application.LoadLevel( nextLevel );
+			}
+		} else {
+			// do something: game over
+		}
+	}
 }
