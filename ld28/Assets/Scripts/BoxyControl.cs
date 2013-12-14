@@ -125,10 +125,20 @@ public class BoxyControl : MonoBehaviour
         }
     }
 
+    // 2D ragdoll FTW
+    private void RagDollMe() {
+        if ( !grounded ) {
+            // choose random torque direction, then choose a random torque value between 25 and 200
+            rigidbody2D.AddTorque( Mathf.Sign( Random.value - 0.5f ) * ( 25f + Random.value * 175f ) );
+        } else {
+            rigidbody2D.AddTorque( Mathf.Sign( rigidbody2D.velocity.x ) * -50f );
+        }
+    }
+
 	public bool HandleGetCoin( Coin.CoinColor color ) {
 
-        if ( state == BoxyState.TooCool ) {
-            return false; //don't get no mo coins now that you've won
+        if ( state == BoxyState.TooCool || state == BoxyState.Dead ) {
+            return false; //don't get no mo coins
         }
 
 		if (firstColor == Coin.CoinColor.None) {
@@ -144,6 +154,7 @@ public class BoxyControl : MonoBehaviour
 			}
 		} else {
             state = BoxyState.Dead;
+            RagDollMe();
             restartedSinceLastDeath = false;
             Invoke( "RestartLevel", 1.0f );
 		}
