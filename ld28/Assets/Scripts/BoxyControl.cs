@@ -31,6 +31,8 @@ public class BoxyControl : MonoBehaviour
 	private Sprite coolSprite;
 	private Sprite horrifiedSprite;
 
+    private bool restartedSinceLastDeath = false;
+
     void Awake()
     {
 		// Setting up references.
@@ -56,7 +58,7 @@ public class BoxyControl : MonoBehaviour
 
         // restart level if dead
         if ( Input.GetButtonDown( "Jump" ) && state == BoxyState.Dead )
-            Application.LoadLevel(Application.loadedLevel);
+            RestartLevel();
 
 		SpriteRenderer renderer = GetComponent<SpriteRenderer> ();
 
@@ -116,6 +118,13 @@ public class BoxyControl : MonoBehaviour
         Application.LoadLevel( nextLevel );
     }
 
+    private void RestartLevel() {
+        if ( !restartedSinceLastDeath ) {
+            Application.LoadLevel(Application.loadedLevel);
+            restartedSinceLastDeath = true;
+        }
+    }
+
 	public bool HandleGetCoin( Coin.CoinColor color ) {
 
         if ( state == BoxyState.TooCool ) {
@@ -135,6 +144,8 @@ public class BoxyControl : MonoBehaviour
 			}
 		} else {
             state = BoxyState.Dead;
+            restartedSinceLastDeath = false;
+            Invoke( "RestartLevel", 1.0f );
 		}
 
         return true;
