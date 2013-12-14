@@ -38,7 +38,7 @@ public class CameraFollow : MonoBehaviour
 
 	void FixedUpdate ()
 	{
-        if ( playerController.state == BoxyState.Dead )
+        if ( playerController.feeling == BoxyFeeling.Dead )
             return;
 
 		TrackPlayer();
