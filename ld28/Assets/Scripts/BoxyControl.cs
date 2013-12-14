@@ -1,5 +1,12 @@
 using UnityEngine;
 
+public enum BoxyState {
+	Dead,
+	Normal,
+	TooCool,
+	Horrified
+}
+
 public class BoxyControl : MonoBehaviour
 {
     public float moveForce = 365f;
@@ -17,10 +24,25 @@ public class BoxyControl : MonoBehaviour
 	public int coinsNeeded = -1;
 	public string nextLevel = "";
 
+	public BoxyState state = BoxyState.Normal;
+
+	private Sprite normalSprite;
+	private Sprite deadSprite;
+	private Sprite coolSprite;
+	private Sprite horrifiedSprite;
+
     void Awake()
     {
 		// Setting up references.
 		groundCheck = transform.Find("groundCheck");
+
+        // load sprites
+        normalSprite     = Resources.Load<Sprite>( "boxy" );
+        deadSprite       = Resources.Load<Sprite>( "boxy_dead" );
+        coolSprite       = Resources.Load<Sprite>( "boxy_deal_with_it" );
+        horrifiedSprite  = Resources.Load<Sprite>( "boxy_shock" );
+
+        print( normalSprite );
     }
 
     void Update()
@@ -31,6 +53,17 @@ public class BoxyControl : MonoBehaviour
 		// If the jump button is pressed and the player is grounded then the player should jump.
 		if(Input.GetButtonDown("Jump") && grounded)
 			jump = true;
+
+		SpriteRenderer renderer = GetComponent<SpriteRenderer> ();
+
+		// update sprite to reflect state
+		switch( state ) {
+		case BoxyState.Dead:        renderer.sprite = deadSprite;       break;
+		case BoxyState.Normal:      renderer.sprite = normalSprite;     break;
+		case BoxyState.TooCool:     renderer.sprite = coolSprite;       break;
+		case BoxyState.Horrified:   renderer.sprite = horrifiedSprite;  break;
+		default:                    renderer.sprite = normalSprite;     break;
+		}
     }
 	
 	// If the player is changing direction (h has a different sign to velocity.x) or hasn't reached maxSpeed yet...
@@ -89,7 +122,7 @@ public class BoxyControl : MonoBehaviour
 				Application.LoadLevel( nextLevel );
 			}
 		} else {
-			// do something: game over
+            state = BoxyState.Dead;
 		}
 	}
 }
