@@ -7,6 +7,11 @@ public enum BoxyFeeling {
 	Horrified
 }
 
+public enum CauseOfDeath {
+    HadTwo,
+    Fell,
+}
+
 public class BoxyControl : MonoBehaviour
 {
 	public enum PlayerState {
@@ -54,30 +59,33 @@ public class BoxyControl : MonoBehaviour
 
     private GUIStyle animTextStyle = new GUIStyle();
 
-    public void Die() {
+    public void Die( CauseOfDeath cause = CauseOfDeath.Fell ) {
         if ( feeling == BoxyFeeling.Dead )
             return;
 
         feeling = BoxyFeeling.Dead;
+        PlayerPrefs.SetInt( "CauseOfDeath", (int) cause );
         RagDollMe();
         restartedSinceLastDeath = false;
 
-        if ( PlayerPrefs.GetInt( "HasDied" ) == 1 ) {
-            Invoke( "RestartLevel", 1.0f );
-        } else {
-            // start text animation
-            Invoke ( "SetDiedOnce", maxTextAnimTime );
+        if ( PlayerPrefs.GetInt( "HasDiedByHavingTwo" ) == 1 ) {
+            Invoke( "RestartLevel", 1f );
+        } else if ( cause == CauseOfDeath.HadTwo ){
+            // allow text animation to play before resetting
+            Invoke( "SetDiedFlag", maxTextAnimTime );
+        } else { // cause == CauseOfDeath.Fell
+            Invoke( "RestartLevel", 1f ); // simple restart, like the first condition
         }
     }
 
-    private void SetDiedOnce() {
-        PlayerPrefs.SetInt( "HasDied", 1 ); 
+    private void SetDiedFlag() {
+        PlayerPrefs.SetInt( "HasDiedByHavingTwo", 1 );
         RestartLevel();
     }
 
     // overlay code
     void OnGUI() {
-        if ( feeling == BoxyFeeling.Dead && PlayerPrefs.GetInt( "HasDied" ) == 0 ) {
+        if ( feeling == BoxyFeeling.Dead && PlayerPrefs.GetInt( "HasDiedByHavingTwo" ) == 0 && PlayerPrefs.GetInt( "CauseOfDeath" ) == (int) CauseOfDeath.HadTwo ) { // wow, this is definitely one of the worst conditionals I've ever written
             Texture2D warning = Resources.Load<Texture2D>( "warning" );
             Texture2D onlyone = Resources.Load<Texture2D>( "you_only_get_one" );
             GUI.Label( new Rect( ( Screen.width - warning.width ) / 2, ( Screen.height - onlyone.height) / 2 - onlyone.height + 20, warning.width, warning.height ), // 20 is fudge
@@ -128,7 +136,7 @@ public class BoxyControl : MonoBehaviour
 
     void Update()
     {
-        if ( feeling == BoxyFeeling.Dead && PlayerPrefs.GetInt( "HasDied" ) == 0 )
+        if ( feeling == BoxyFeeling.Dead && PlayerPrefs.GetInt( "HasDiedByHavingTwo" ) == 0 )
             textAnimTimeAcc += Time.deltaTime;
         
 		// The player is grounded if a linecast to the groundcheck position hits anything on the ground layer.
@@ -329,7 +337,7 @@ public class BoxyControl : MonoBehaviour
                 Invoke( "LoadNextLevel", 1.0f );
 			}
 		} else {
-            Die();
+            Die( CauseOfDeath.HadTwo );
 		}
 
         return true;
