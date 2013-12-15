@@ -30,6 +30,7 @@ public class BoxyControl : MonoBehaviour
 
 	private Transform groundCheck;			// A position marking where to check if the player is grounded.
 	public float jumpForce = 1000f;			// Amount of force added when the player jumps.
+    public float slopeNormalForce = 100f;   // Amount of fudge force applied to keep player on slope
 	public bool grounded = false;
 
 	public Coin.CoinColor firstColor = Coin.CoinColor.None;
@@ -195,25 +196,39 @@ public class BoxyControl : MonoBehaviour
         float h = Input.GetAxis( "Horizontal" );
 		SpeedX = rigidbody2D.velocity.x;
 		float SpeedY = rigidbody2D.velocity.y;
+        float rotation = transform.rotation.eulerAngles.z;
+        float rotRad = rotation * Mathf.Deg2Rad; // for convenience
 
 		if( State != PlayerState.StuckOnSide )
 		{
 			if( h > 0f )
 			{
-				SpeedX = rigidbody2D.velocity.x + PlayerAccel + PlayerDecel;
+                float rawSpeed = rigidbody2D.velocity.x + PlayerAccel + PlayerDecel;
+				SpeedX = Mathf.Cos( rotRad ) * rawSpeed; // goes a bit slower on slopes
+
 				if( SpeedX > maxSpeed )
-				{
 					SpeedX = maxSpeed;
-				}
+
+                if ( rotation > 15 && rotation < 345 && grounded ) // if on slope, apply normal force toward the slope
+                    rigidbody2D.AddForce( -1 * new Vector2( Mathf.Sin( rotRad ), Mathf.Cos( rotRad ) ) * slopeNormalForce );
+
 			}
 			else if( h < 0f )
 			{
-				SpeedX = rigidbody2D.velocity.x - (PlayerAccel + PlayerDecel);
+                // we want to apply an equivalent force upwards
+                float rawSpeed = rigidbody2D.velocity.x - (PlayerAccel + PlayerDecel);
+				SpeedX = Mathf.Cos( rotRad ) * rawSpeed;
+
 				if( SpeedX < -maxSpeed )
 					SpeedX = -maxSpeed;
+
+                if ( rotation > 15 && rotation < 345 && grounded ) // if on slope, apply normal force toward the slope
+                    rigidbody2D.AddForce( -1 * new Vector2( Mathf.Sin( rotRad ), Mathf.Cos( rotRad ) ) * slopeNormalForce );
 			}
 
-			SpeedX = TendToZero( SpeedX, PlayerDecel );
+            if ( !( rotation > 15 && rotation < 345 && grounded ) ) { // do not use this code path if we are on a slope
+                SpeedX = TendToZero( SpeedX, PlayerDecel );
+            }
 		}
 		if( State == PlayerState.Jumping ){
 			if( PreviousState != PlayerState.Jumping )
