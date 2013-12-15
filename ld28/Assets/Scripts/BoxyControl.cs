@@ -1,10 +1,10 @@
 using UnityEngine;
 
 public enum BoxyFeeling {
-	Dead,
-	Normal,
-	TooCool,
-	Horrified
+    Dead,
+    Normal,
+    TooCool,
+    Horrified
 }
 
 public enum CauseOfDeath {
@@ -12,13 +12,14 @@ public enum CauseOfDeath {
     Fell,
 }
 
+public enum PlayerState {
+    Walking,
+    StuckOnSide,
+    Jumping,
+};
+
 public class BoxyControl : MonoBehaviour
 {
-	public enum PlayerState {
-		Walking,
-		StuckOnSide,
-		Jumping,
-	};
 
 	public PlayerState PreviousState = PlayerState.Walking;
 	public PlayerState State = PlayerState.Walking;

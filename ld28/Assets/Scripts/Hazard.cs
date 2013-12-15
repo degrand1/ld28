@@ -28,7 +28,7 @@ public class Hazard : MonoBehaviour {
     	{
     		BoxyControl playerController = other.GetComponent<BoxyControl>();
 
-    		playerController.Die ();
+    		playerController.Die();
 
     		// disable collision by destroying myself. Pretty hacky.
     		if ( hazardClass == HazardClass.Invisible )
