@@ -189,7 +189,7 @@ public class BoxyControl : MonoBehaviour
 				PreviousState = State;
 				State = PlayerState.Jumping;
                 float rotation = transform.rotation.eulerAngles.z;
-                if ( rotation > 15 && rotation < 345 && grounded ) // if on slope, set flag so we can use it while moving in midair
+                if ( rotation > 15 && rotation < 345 ) // if on slope, set flag so we can use it while moving in midair
                     jumpedOffSlope = true;
 			}
 		}
@@ -237,7 +237,7 @@ public class BoxyControl : MonoBehaviour
                     rigidbody2D.AddForce( -1 * new Vector2( Mathf.Sin( rotRad ), Mathf.Cos( rotRad ) ) * slopeNormalForce );
 			}
 
-            if ( !( rotation > 15 && rotation < 345 && grounded || jumpedOffSlope ) ) { // do not use this code path if we are on a slope or jumped off of one
+            if ( !( ( rotation > 15 && rotation < 345 && grounded ) || jumpedOffSlope ) ) { // do not use this code path if we are on a slope or jumped off of one
                 SpeedX = TendToZero( SpeedX, PlayerDecel );
             }
 		}
