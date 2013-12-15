@@ -35,6 +35,7 @@ public class BoxyControl : MonoBehaviour
 	public float MaxJumpingTime = 2.0f;
 
 	private Transform groundCheck;			// A position marking where to check if the player is grounded.
+				
 	public float jumpForce = 1000f;			// Amount of force added when the player jumps.
     public float slopeNormalForce = 100f;   // Amount of fudge force applied to keep player on slope
 	public bool grounded = false;
@@ -114,10 +115,13 @@ public class BoxyControl : MonoBehaviour
         animTextStyle.normal.background = Resources.Load<Texture2D>( "white" );
     }
 
-	private bool IsRotated( float RotationZ )
+	public bool IsRotated( float RotationZ )
 	{
-		return RotationZ <= 92  && RotationZ >= 88 
+		return RotationZ <= 62  && RotationZ >= 58
+			|| RotationZ <= 92  && RotationZ >= 88
+			|| RotationZ <= 152 && RotationZ >= 148
 			|| RotationZ <= 182 && RotationZ >= 178
+			|| RotationZ <= 242 && RotationZ >= 238
 			|| RotationZ <= 272 && RotationZ >= 268;
 	}
 
@@ -129,6 +133,12 @@ public class BoxyControl : MonoBehaviour
 			return RequiredTorque[1];
 		else if( RotationZ <= 272 && RotationZ >= 268 )
 			return RequiredTorque[2];
+		else if( RotationZ <= 62 && RotationZ >= 58 )
+			return RequiredTorque[3];
+		else if( RotationZ <= 152 && RotationZ >= 148 )
+			return RequiredTorque[4];
+		else if( RotationZ <= 242 && RotationZ >= 238 )
+			return RequiredTorque[5];
 		else{
 			print ( "We shouldn't get here!" );
 			return 0;
