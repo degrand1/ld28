@@ -1,11 +1,14 @@
 ﻿<Properties>
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" PreferredExecutionTarget="MonoDevelop.Default" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="Assets\Scripts\BoxyControl.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/Scripts/BoxyControl.cs">
     <Files>
-      <File FileName="Assets\Scripts\BoxyControl.cs" Line="77" Column="77" />
-      <File FileName="..\..\..\Unity2DDemo\Assets\Scripts\PickupSpawner.cs" Line="1" Column="1" />
-      <File FileName="Assets\Scripts\Reference\PlayerControl.cs" Line="1" Column="1" />
-      <File FileName="Assets\Scripts\Reference\CameraFollow.cs" Line="1" Column="1" />
+      <File FileName="Assets/Scripts/BoxyControl.cs" Line="276" Column="1" />
+      <File FileName="Assets/Scripts/BoxyControl.cs" Line="1" Column="1" />
+      <File FileName="Assets/Scripts/Reference/HealthPickup.cs" Line="1" Column="1" />
+      <File FileName="Assets/Scripts/Coin.cs" Line="1" Column="1" />
+      <File FileName="Assets/Scripts/SceneData.cs" Line="1" Column="1" />
+      <File FileName="Assets/Scripts/Reference/PlayerControl.cs" Line="1" Column="1" />
+      <File FileName="Assets/Scripts/Hazard.cs" Line="15" Column="2" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
