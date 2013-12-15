@@ -47,6 +47,11 @@ public class BoxyControl : MonoBehaviour
 
     private bool restartedSinceLastDeath = false;
 
+    public float maxTextAnimTime = 2.0f;
+    public float textAnimTimeAcc = 0.0f;
+
+    private GUIStyle animTextStyle = new GUIStyle();
+
     public void Die() {
         if ( feeling == BoxyFeeling.Dead )
             return;
@@ -54,7 +59,24 @@ public class BoxyControl : MonoBehaviour
         feeling = BoxyFeeling.Dead;
         RagDollMe();
         restartedSinceLastDeath = false;
-        Invoke( "RestartLevel", 1.0f );
+
+        if ( PlayerPrefs.GetInt( "HasDied" ) == 1 ) {
+            Invoke( "RestartLevel", 1.0f );
+        } else {
+            // start text animation
+            Invoke ( "SetDiedOnce", maxTextAnimTime );
+        }
+    }
+
+    private void SetDiedOnce() {
+        PlayerPrefs.SetInt( "HasDied", 1 ); 
+        RestartLevel();
+    }
+
+    void OnGUI() {
+        if ( feeling == BoxyFeeling.Dead && PlayerPrefs.GetInt( "HasDied" ) == 0 ) {
+            GUI.Label( new Rect( Screen.width * ( 1 - textAnimTimeAcc / maxTextAnimTime ) - Screen.width, 0, Screen.width, Screen.height ), "YOU CAN ONLY CHOOSE ONE.", animTextStyle );
+        }
     }
 
     void Awake()
@@ -68,7 +90,8 @@ public class BoxyControl : MonoBehaviour
         coolSprite       = Resources.Load<Sprite>( "boxy_deal_with_it" );
         horrifiedSprite  = Resources.Load<Sprite>( "boxy_shock" );
 
-        print( normalSprite );
+        // set up GUI style
+        animTextStyle.fontSize = 300;
     }
 
 	private bool IsRotated( float RotationZ )
@@ -94,6 +117,9 @@ public class BoxyControl : MonoBehaviour
 
     void Update()
     {
+        if ( feeling == BoxyFeeling.Dead && PlayerPrefs.GetInt( "HasDied" ) == 0 )
+            textAnimTimeAcc += Time.deltaTime;
+        
 		// The player is grounded if a linecast to the groundcheck position hits anything on the ground layer.
 		grounded = Physics2D.Linecast(transform.position, groundCheck.position, 1 << LayerMask.NameToLayer("Ground"));  
 
@@ -210,22 +236,6 @@ public class BoxyControl : MonoBehaviour
 		}
     }
 
-	private string colorToTag( Coin.CoinColor color ) {
-		switch (color)
-		{
-            case Coin.CoinColor.Blue:
-                    return "Blue Coin";
-            case Coin.CoinColor.Green:
-                    return "Green Coin";
-            case Coin.CoinColor.Orange:
-                    return "Orange Coin";
-            case Coin.CoinColor.Red:
-                    return "Red Coin";
-            case Coin.CoinColor.None:
-                    return "White Coin";
-			default: return "White Coin";
-		}
-	}
 
     private void LoadNextLevel() {
         Application.LoadLevel( nextLevel );
@@ -249,6 +259,27 @@ public class BoxyControl : MonoBehaviour
         }
     }
 
+    private string colorToTag( Coin.CoinColor color ) {
+        switch (color)
+        {
+            case Coin.CoinColor.Blue:
+                    return "Blue Coin";
+            case Coin.CoinColor.Green:
+                    return "Green Coin";
+            case Coin.CoinColor.Orange:
+                    return "Orange Coin";
+            case Coin.CoinColor.Red:
+                    return "Red Coin";
+            case Coin.CoinColor.None:
+                    return "White Coin";
+            default: return "White Coin";
+        }
+    }
+
+    private int getCoinsInLevel( Coin.CoinColor color ) {
+        return GameObject.FindGameObjectsWithTag( colorToTag( color ) ).Length;
+    }
+
 	public bool HandleGetCoin( Coin.CoinColor color ) {
 
         if ( feeling == BoxyFeeling.TooCool || feeling == BoxyFeeling.Dead ) {
@@ -257,7 +288,7 @@ public class BoxyControl : MonoBehaviour
 
 		if (firstColor == Coin.CoinColor.None) {
 			firstColor = color;
-			coinsNeeded = GameObject.FindGameObjectsWithTag( colorToTag( color ) ).Length;
+            coinsNeeded = getCoinsInLevel( color );
 		}
 			
 		if (firstColor == color) {
