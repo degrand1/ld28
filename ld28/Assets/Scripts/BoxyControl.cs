@@ -100,6 +100,11 @@ public class BoxyControl : MonoBehaviour
         animTextStyle.normal.textColor = Color.black;
         animTextStyle.alignment = TextAnchor.MiddleCenter;
         animTextStyle.normal.background = Resources.Load<Texture2D>( "white" );
+
+        // set up default pick-me-up torques
+        RequiredTorque[0] = -60;
+        RequiredTorque[1] = 100;
+        RequiredTorque[2] =  60;
     }
 
 	private bool IsRotated( float RotationZ )
