@@ -27,7 +27,7 @@ public class Coin : MonoBehaviour {
 
             if ( playerController.HandleGetCoin( color ) ) {
                 // Destroy me
-                Destroy( transform.root.gameObject );
+                Destroy( gameObject );
             }
 
         }

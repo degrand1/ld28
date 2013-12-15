@@ -48,6 +48,7 @@ public class BoxyControl : MonoBehaviour
 	public string nextLevel = "";
 
 	public BoxyFeeling feeling = BoxyFeeling.Normal;
+	public float tooCoolLength = 1.0f;
 
 	private Sprite normalSprite;
 	private Sprite deadSprite;
@@ -345,7 +346,7 @@ public class BoxyControl : MonoBehaviour
 			numCoins++;
 			if ( numCoins == coinsNeeded ) {
                 feeling = BoxyFeeling.TooCool;
-                Invoke( "LoadNextLevel", 1.0f );
+                Invoke( "LoadNextLevel", tooCoolLength );
 			}
 		} else {
             Die( CauseOfDeath.HadTwo );
