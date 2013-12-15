@@ -75,7 +75,12 @@ public class BoxyControl : MonoBehaviour
 
     void OnGUI() {
         if ( feeling == BoxyFeeling.Dead && PlayerPrefs.GetInt( "HasDied" ) == 0 ) {
-            GUI.Label( new Rect( Screen.width * ( 1 - textAnimTimeAcc / maxTextAnimTime ) - Screen.width, 0, Screen.width, Screen.height ), "YOU CAN ONLY CHOOSE ONE.", animTextStyle );
+            Texture2D warning = Resources.Load<Texture2D>( "warning" );
+            Texture2D onlyone = Resources.Load<Texture2D>( "you_only_get_one" );
+            GUI.Label( new Rect( ( Screen.width - warning.width ) / 2, ( Screen.height - onlyone.height) / 2 - onlyone.height + 20, warning.width, warning.height ), // 20 is fudge
+                       warning );
+            GUI.Label( new Rect( ( Screen.width - onlyone.width ) / 2, ( Screen.height - onlyone.height ) / 2, onlyone.width, onlyone.height ),
+                       onlyone );
         }
     }
 
@@ -91,7 +96,10 @@ public class BoxyControl : MonoBehaviour
         horrifiedSprite  = Resources.Load<Sprite>( "boxy_shock" );
 
         // set up GUI style
-        animTextStyle.fontSize = 300;
+        animTextStyle.fontSize = 100;
+        animTextStyle.normal.textColor = Color.black;
+        animTextStyle.alignment = TextAnchor.MiddleCenter;
+        animTextStyle.normal.background = Resources.Load<Texture2D>( "white" );
     }
 
 	private bool IsRotated( float RotationZ )
