@@ -32,6 +32,7 @@ public class BoxyControl : MonoBehaviour
 	public float jumpForce = 1000f;			// Amount of force added when the player jumps.
     public float slopeNormalForce = 100f;   // Amount of fudge force applied to keep player on slope
 	public bool grounded = false;
+    private bool jumpedOffSlope = false;
 
 	public Coin.CoinColor firstColor = Coin.CoinColor.None;
 	private int numCoins = 0;
@@ -131,7 +132,8 @@ public class BoxyControl : MonoBehaviour
             textAnimTimeAcc += Time.deltaTime;
         
 		// The player is grounded if a linecast to the groundcheck position hits anything on the ground layer.
-		grounded = Physics2D.Linecast(transform.position, groundCheck.position, 1 << LayerMask.NameToLayer("Ground"));  
+		grounded = Physics2D.Linecast(transform.position, groundCheck.position, 1 << LayerMask.NameToLayer("Ground"));
+        jumpedOffSlope = grounded ? false : jumpedOffSlope; // clear jumpedOffSlope everytime we get grounded
 
 		//Player is stuck on his side
 		if( State == PlayerState.StuckOnSide )
@@ -178,6 +180,9 @@ public class BoxyControl : MonoBehaviour
 			{
 				PreviousState = State;
 				State = PlayerState.Jumping;
+                float rotation = transform.rotation.eulerAngles.z;
+                if ( rotation > 15 && rotation < 345 && grounded ) // if on slope, set flag so we can use it while moving in midair
+                    jumpedOffSlope = true;
 			}
 		}
     }
@@ -203,8 +208,7 @@ public class BoxyControl : MonoBehaviour
 		{
 			if( h > 0f )
 			{
-                float rawSpeed = rigidbody2D.velocity.x + PlayerAccel + PlayerDecel;
-				SpeedX = Mathf.Cos( rotRad ) * rawSpeed; // goes a bit slower on slopes
+				SpeedX = Mathf.Cos( rotRad ) * ( rigidbody2D.velocity.x + PlayerAccel + PlayerDecel ); // goes a bit slower on slopes
 
 				if( SpeedX > maxSpeed )
 					SpeedX = maxSpeed;
@@ -216,8 +220,7 @@ public class BoxyControl : MonoBehaviour
 			else if( h < 0f )
 			{
                 // we want to apply an equivalent force upwards
-                float rawSpeed = rigidbody2D.velocity.x - (PlayerAccel + PlayerDecel);
-				SpeedX = Mathf.Cos( rotRad ) * rawSpeed;
+				SpeedX = Mathf.Cos( rotRad ) * ( rigidbody2D.velocity.x - (PlayerAccel + PlayerDecel) ); // goes a bit slower on slopes
 
 				if( SpeedX < -maxSpeed )
 					SpeedX = -maxSpeed;
@@ -226,14 +229,18 @@ public class BoxyControl : MonoBehaviour
                     rigidbody2D.AddForce( -1 * new Vector2( Mathf.Sin( rotRad ), Mathf.Cos( rotRad ) ) * slopeNormalForce );
 			}
 
-            if ( !( rotation > 15 && rotation < 345 && grounded ) ) { // do not use this code path if we are on a slope
+            if ( !( rotation > 15 && rotation < 345 && grounded || jumpedOffSlope ) ) { // do not use this code path if we are on a slope or jumped off of one
                 SpeedX = TendToZero( SpeedX, PlayerDecel );
             }
 		}
-		if( State == PlayerState.Jumping ){
+		if( State == PlayerState.Jumping ) {
 			if( PreviousState != PlayerState.Jumping )
 			{
-				rigidbody2D.AddForce(new Vector2(0f, jumpForce));
+                if ( rotation > 15 && rotation < 345 && grounded ) // this is still too buggy to use for all jumps
+                    rigidbody2D.AddForce( new Vector2( -Mathf.Sin( rotRad ), Mathf.Cos( rotRad ) ) * jumpForce );
+                else
+                    rigidbody2D.AddForce( new Vector2( 0f, jumpForce ) );
+                
 				PreviousState = State;
 				return;
 			}
