@@ -73,6 +73,7 @@ public class BoxyControl : MonoBehaviour
         RestartLevel();
     }
 
+    // overlay code
     void OnGUI() {
         if ( feeling == BoxyFeeling.Dead && PlayerPrefs.GetInt( "HasDied" ) == 0 ) {
             Texture2D warning = Resources.Load<Texture2D>( "warning" );
