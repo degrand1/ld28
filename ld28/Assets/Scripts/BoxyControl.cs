@@ -62,6 +62,14 @@ public class BoxyControl : MonoBehaviour
 
     private GUIStyle animTextStyle = new GUIStyle();
 
+    public AudioClip coinSfx;
+    public AudioClip lastCoinSfx;
+    public AudioClip deathSfx;
+    public AudioClip loJumpSfx;
+    public AudioClip warningSfx;
+
+    private bool hasPlayedWarningSfx = false;
+
     public void Die( CauseOfDeath cause = CauseOfDeath.Fell ) {
         if ( feeling == BoxyFeeling.Dead )
             return;
@@ -79,6 +87,8 @@ public class BoxyControl : MonoBehaviour
         } else { // cause == CauseOfDeath.Fell
             Invoke( "RestartLevel", 1f ); // simple restart, like the first condition
         }
+
+        PlayClip( deathSfx );
     }
 
     private void SetDiedFlag() {
@@ -89,12 +99,18 @@ public class BoxyControl : MonoBehaviour
     // overlay code
     void OnGUI() {
         if ( feeling == BoxyFeeling.Dead && PlayerPrefs.GetInt( "HasDiedByHavingTwo" ) == 0 && PlayerPrefs.GetInt( "CauseOfDeath" ) == (int) CauseOfDeath.HadTwo ) { // wow, this is definitely one of the worst conditionals I've ever written
+            if ( !hasPlayedWarningSfx ) {
+                AudioSource.PlayClipAtPoint( warningSfx, new Vector2( transform.position.x, transform.position.y ) );
+                hasPlayedWarningSfx = true;
+            }
             Texture2D warning = Resources.Load<Texture2D>( "warning" );
             Texture2D onlyone = Resources.Load<Texture2D>( "you_only_get_one" );
             GUI.Label( new Rect( ( Screen.width - warning.width ) / 2, ( Screen.height - onlyone.height) / 2 - onlyone.height + 20, warning.width, warning.height ), // 20 is fudge
                        warning );
             GUI.Label( new Rect( ( Screen.width - onlyone.width ) / 2, ( Screen.height - onlyone.height ) / 2, onlyone.width, onlyone.height ),
                        onlyone );
+        } else {
+        
         }
     }
 
@@ -260,7 +276,8 @@ public class BoxyControl : MonoBehaviour
                     rigidbody2D.AddForce( new Vector2( -Mathf.Sin( rotRad ), Mathf.Cos( rotRad ) ) * jumpForce );
                 else
                     rigidbody2D.AddForce( new Vector2( 0f, jumpForce ) );
-                
+
+                AudioSource.PlayClipAtPoint( loJumpSfx, new Vector2( transform.position.x, transform.position.y ) );
 				PreviousState = State;
 				return;
 			}
@@ -331,6 +348,13 @@ public class BoxyControl : MonoBehaviour
         return GameObject.FindGameObjectsWithTag( colorToTag( color ) ).Length;
     }
 
+    private void PlayClip( AudioClip clip ) {
+        AudioSource player = GetComponent<AudioSource>();
+        player.Stop();
+        player.clip = clip;
+        player.Play();
+    }
+
 	public bool HandleGetCoin( Coin.CoinColor color ) {
 
         if ( feeling == BoxyFeeling.TooCool || feeling == BoxyFeeling.Dead ) {
@@ -345,9 +369,12 @@ public class BoxyControl : MonoBehaviour
 		if (firstColor == color) {
 			numCoins++;
 			if ( numCoins == coinsNeeded ) {
+                PlayClip( lastCoinSfx );
                 feeling = BoxyFeeling.TooCool;
                 Invoke( "LoadNextLevel", tooCoolLength );
-			}
+			} else {
+                PlayClip( coinSfx );
+            }
 		} else {
             Die( CauseOfDeath.HadTwo );
 		}
