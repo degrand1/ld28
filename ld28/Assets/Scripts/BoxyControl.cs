@@ -179,12 +179,15 @@ public class BoxyControl : MonoBehaviour
 			{
 				PreviousState = State;
 				State = PlayerState.Walking;
+                feeling = BoxyFeeling.Normal;
 			}
 		}
 		else if( IsRotated( transform.rotation.eulerAngles.z ) && rigidbody2D.velocity.y == 0 )
 		{
 			PreviousState = State;
 			State = PlayerState.StuckOnSide;
+            if ( feeling != BoxyFeeling.Dead ) //LOL WHAT IS THIS MADNESS. IS THIS REALITY.
+                feeling = BoxyFeeling.Horrified;
 			rigidbody2D.velocity = new Vector2( 0, rigidbody2D.velocity.y );
 		}
 
@@ -211,6 +214,7 @@ public class BoxyControl : MonoBehaviour
 				rigidbody2D.AddTorque( GetAmountToFlip( transform.rotation.eulerAngles.z ) );
 				PreviousState = State;
 				State = PlayerState.Walking;
+                feeling = BoxyFeeling.Normal;
 			}
 			else if( grounded )
 			{
